@@ -1,7 +1,7 @@
 import "dotenv/config";
 import path from "node:path";
 import crypto from "node:crypto";
-import * as XLSX from "xlsx";
+import ExcelJS from "exceljs";
 import {
   PrismaClient,
   Prisma,
@@ -230,11 +230,19 @@ async function main() {
   const conces = await prisma.concesionario.findMany();
   const concesByCode = new Map(conces.map((c) => [c.code, c]));
 
-  const wb = XLSX.readFile(excelPath, { cellDates: true });
-  const sheet = wb.Sheets["TRAMITES POR MES"];
-  if (!sheet) throw new Error(`No existe hoja "TRAMITES POR MES". Hojas: ${wb.SheetNames.join(", ")}`);
+  const wb = new ExcelJS.Workbook();
+  await wb.xlsx.readFile(excelPath);
+  const sheet = wb.getWorksheet("TRAMITES POR MES");
+  if (!sheet) throw new Error(`No existe hoja "TRAMITES POR MES". Hojas: ${wb.worksheets.map((w) => w.name).join(", ")}`);
 
-  const rows: any[][] = XLSX.utils.sheet_to_json(sheet, { header: 1, raw: true });
+  // Build a 0-indexed rows array matching the original shape:
+  // exceljs row.values is 1-indexed (index 0 is undefined), so we shift by -1.
+  const rows: any[][] = [];
+  sheet.eachRow({ includeEmpty: true }, (row) => {
+    // row.values[0] is always undefined in exceljs; slice from index 1 to get 0-based array
+    const vals = (row.values as any[]).slice(1);
+    rows.push(vals);
+  });
 
   let currentConcesionarioCode: string | null = null;
 
