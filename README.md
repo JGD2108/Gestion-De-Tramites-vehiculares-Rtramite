@@ -218,6 +218,53 @@ Key environment variables:
 
 ---
 
+## Project Background
+
+**Was SGM a personal project, university project, or built for a real business/client?**  
+Built for a real business client — [Rtramite](https://github.com/JGD2108/Gestion-De-Tramites-vehiculares-Rtramite), a Colombian startup focused on vehicle registration and transit-services management. Not an academic exercise.
+
+**Did you build it alone or with a team?**  
+Alone — sole developer, from requirements gathering and database design through to delivery.
+
+**About how long did the project take?**  
+Approximately one month from kickoff to production handoff.
+
+**Roughly how many modules, screens, or major workflows did it include?**  
+Two major workflows (Trámites and Servicios), ten backend modules (Auth, Trámites, Servicios, Files, Payments, Shipments, Reports, Catalogs, Users, Clientes), and nine frontend pages/screens (Login, Trámites tray, Create Trámite, Trámite detail with five tabs, Servicios tray, Create Servicio, Servicio detail with three tabs, Overdue queue, Reports dashboard). Servicios alone supports twelve service types driven by data templates.
+
+**How many user roles or permission levels did you implement?**  
+One. The client's operations team worked from a single role; multi-tier permissions were not a requirement at this stage of the product.
+
+**How many main workflow states did the process support?**  
+Twenty states across the two workflows:
+
+- **Trámites (vehicle registration)** — 11 states: `FACTURA_RECIBIDA → PREASIGNACION_SOLICITADA → PLACA_ASIGNADA → PLACA_ENVIADA_CONCESIONARIO → DOCS_FISICOS_PENDIENTES → DOCS_FISICOS_COMPLETOS → ENVIADO_GESTOR_TRANSITO → TIMBRE_PAGADO → DERECHOS_PAGADOS → FINALIZADO_ENTREGADO`, plus `CANCELADO` reachable from any point and a `REABRIR` action to roll back finalized/cancelled cases.
+- **Servicios (non-registration services)** — 9 states: `RECIBIDO → EN_REVISION → PENDIENTE_DOCUMENTOS → PENDIENTE_PAGOS → RADICADO → EN_TRAMITE → LISTO_PARA_ENTREGA → ENTREGADO`, plus `CANCELADO`.
+
+**Did it replace any manual process? If yes, what got faster or easier?**  
+Yes. Before SGM the team tracked cases in spreadsheets, filled account-statement forms by hand, and followed up on overdue cases manually. SGM replaced that with:
+
+- A central dashboard replacing per-case spreadsheet rows — single view of all in-progress registrations and services.
+- Auto-assigned consecutive business IDs (year + dealer code + sequential number) — no duplicate or missing entries.
+- A digital checklist with versioned PDF uploads — instant visibility into which documents were still missing.
+- Automated account-statement (`cuenta de cobro`) PDF generation from a coordinate-mapped template — no more hand-filling tax, shipment, and fee line items.
+- Configurable overdue alerts — flagged cases past their SLA threshold automatically instead of requiring manual monitoring.
+- Structured payment records (type, method, attachment) replacing informal notes.
+
+**Did it generate different document/report types? How many?**  
+Nine in total across two categories:
+
+- *Checklist documents (6 types)*: Factura (required at intake), Evidencia Placa, Documento Físico, Recibo Timbre, Recibo Derechos, Otro — each supporting versioned PDF/image uploads.
+- *Report outputs (3 types)*: Account Statement PDF (pdf-lib coordinate mapping, 7 line items, 4×1000 tax, totals), CSV export (injection-safe sanitization, paginated), and a paginated summary/filtered-listing report.
+
+**Did real users test or use it? If yes, who were they?**  
+Yes. The Rtramite operations team used the system in production. Four structured feedback meetings with the client shaped the features, validated the state-machine transitions, and confirmed that the document checklist, payment types, and shipment tracking covered all real-world cases they handled.
+
+**What part did you personally own end-to-end that you're most proud of?**  
+The business-understanding piece. Mapping the client's paper-based dealership workflow into two parallel state machines — 11 states for registrations, 9 for services — and identifying exactly which documents, payment types, and shipment steps belonged to each stage required going deep on how the transit process actually works in Colombia. Translating that understanding into a data model, state logic, and UI the client could use without any training is the part I'm most satisfied with.
+
+---
+
 ## Notes
 
 - Keep `.env` files out of source control; rotate all secrets before any production deployment.
